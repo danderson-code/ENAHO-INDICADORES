@@ -1,38 +1,38 @@
-*======================================================================
-*   ENAHO 2024 – Analfabetismo por rangos de edad 
-*======================================================================
+*   TASA DE ANALFABETISMO POR GRUPO ESPECIAL DE EDAD, MÓDULO 3 - ENAHO
+
+/*
+
+En el marco de la formulación de la Política Regional de la Juventud de un 
+determinado departamento, se considera necesario definir un grupo especial de edad, 
+con énfasis en el rango de 15 a 29 años, a fin de orientar el análisis y la 
+formulación de políticas de manera más precisa y pertinente.
+
+*/
 
 clear all
+set more off
+
 cd "C:\Users\DANIEL\Downloads\Trabajos\Política Regional\Oficial\Analfabetismo"
 
-
-*======================================================================
 * 1. CONFIGURAR DISEÑO MUESTRAL
-*======================================================================
 
 * Abrir base 
 use enaho01a-2024-300.dta, clear
 
 svyset [pweight = factor07], psu(conglome) strata(estrato)
 
-
-*======================================================================
 * 2. VARIABLES GEOGRÁFICAS
-*======================================================================
 
-*--------------------------------------------------
 * Área: urbana / rural
-*--------------------------------------------------
+
 gen area = estrato
 recode area (1/5 = 1) (6/8 = 2)
 label define area 1 "Urbana" 2 "Rural"
 label values area area
 label var area "Área de residencia"
 
-
-*--------------------------------------------------
 * Región natural
-*--------------------------------------------------
+
 gen regnat = .
 replace regnat = 1 if dominio <= 3 | dominio == 8
 replace regnat = 2 if dominio >= 4 & dominio <= 6
@@ -41,10 +41,8 @@ label define regnat 1 "Costa" 2 "Sierra" 3 "Selva"
 label values regnat regnat
 label var regnat "Región natural"
 
-
-*--------------------------------------------------
 * Dominio geográfico
-*--------------------------------------------------
+
 gen dom = .
 replace dom = 1 if regnat == 1 & area == 1
 replace dom = 2 if regnat == 1 & area == 2
@@ -63,10 +61,8 @@ label define ldom                                                 ///
 label values dom ldom
 label var dom "Dominio geográfico"
 
-
-*--------------------------------------------------
 * Departamento (25)
-*--------------------------------------------------
+
 destring ubigeo, generate(dpto)
 replace dpto = dpto / 10000
 replace dpto = round(dpto)
@@ -85,10 +81,8 @@ label define dpto                                                ///
 
 label values dpto dpto
 
-
-*--------------------------------------------------
 * Departamento (26): Lima diferenciada
-*--------------------------------------------------
+
 gen dpto_26 = dpto * 10
 replace dpto_26 = 151 if dom == 7
 replace dpto_26 = 152 if dpto == 15 & dom ~= 7
@@ -108,20 +102,16 @@ label define dpto_26                                             ///
 
 label values dpto_26 dpto_26
 
-
-*======================================================================
 * 3. VARIABLE DE ANALFABETISMO
-*======================================================================
+
 gen analfa = 0 if p208a >= 15 & p204 == 1
 replace analfa = 1 if p208a >= 15 & p302 == 2 & p204 == 1
 label define analfa 0 "Sabe leer y escribir" 1 "No sabe leer ni escribir"
 label values analfa analfa
 label var analfa "Condición de alfabetismo"
 
-
-*======================================================================
 * 4. RANGOS DE EDAD PERSONALIZADOS
-*======================================================================
+
 gen rangoedad = .
 replace rangoedad = 1 if p208a >= 15 & p208a <= 29
 replace rangoedad = 2 if p208a >= 30 & p208a <= 44
@@ -133,75 +123,59 @@ label define rangoedad                                          ///
 label values rangoedad rangoedad
 label var rangoedad "Rangos de edad"
 
-
-*======================================================================
 * 5. TABULACIONES Y ESTIMACIONES CON DISEÑO MUESTRAL
-*======================================================================
 
-*--------------------------------------------------
 * Total nacional
-*--------------------------------------------------
+
 svy: proportion analfa, over(rangoedad)
 estat cv
 
-*--------------------------------------------------
 * Por región natural
-*--------------------------------------------------
+
 svy: proportion analfa, over(regnat)
 estat cv
 
-*--------------------------------------------------
 * Por dominio geográfico
-*--------------------------------------------------
+
 svy: proportion analfa, over(dom)
 estat cv
 
-*--------------------------------------------------
 * Por departamento (26)
-*--------------------------------------------------
+
 svy: proportion analfa, over(dpto_26)
 estat cv
 
-
-*======================================================================
 * 6. RESULTADOS ESPECÍFICOS PARA JUNÍN
-*======================================================================
 
-*--------------------------------------------------
 * Total Junín
-*--------------------------------------------------
+
 svy: proportion analfa if dpto_26 == 120, over(rangoedad)
 estat cv
 
-*--------------------------------------------------
 * Hombres Junín
-*--------------------------------------------------
+
 svy: proportion analfa if dpto_26 == 120 & p207 == 1, over(rangoedad)
 estat cv
 
-*--------------------------------------------------
 * Mujeres Junín
-*--------------------------------------------------
+
 svy: proportion analfa if dpto_26 == 120 & p207 == 2, over(rangoedad)
 estat cv
 
-*--------------------------------------------------
 * Urbano Junín
-*--------------------------------------------------
+
 svy: proportion analfa if dpto_26 == 120 & area == 1, over(rangoedad)
 estat cv
 
-*--------------------------------------------------
 * Rural Junín
-*--------------------------------------------------
+
 svy: proportion analfa if dpto_26 == 120 & area == 2, over(rangoedad)
 estat cv
 
-
-*======================================================================
 * 7. OPCIONAL: TABLAS PORCENTUALES
-*======================================================================
+
 svy: tab rangoedad analfa if dpto_26 == 120, row percent format(%4.1f)
 svy: tab rangoedad analfa if dpto_26 == 120 & p207 == 1, row percent format(%4.1f)
 svy: tab rangoedad analfa if dpto_26 == 120 & p207 == 2, row percent format(%4.1f)
+
 

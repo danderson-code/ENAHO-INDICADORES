@@ -14,14 +14,10 @@ set more off
 
 cd "C:\Users\DANIEL\Downloads\Trabajos\Política Regional\Oficial\Analfabetismo"
 
-* 1. CONFIGURAR DISEÑO MUESTRAL
-
 * Abrir base 
 use enaho01a-2024-300.dta, clear
 
-svyset [pweight = factor07], psu(conglome) strata(estrato)
-
-* 2. VARIABLES GEOGRÁFICAS
+* 1. VARIABLES GEOGRÁFICAS
 
 * Área: urbana / rural
 
@@ -102,7 +98,7 @@ label define dpto_26                                             ///
 
 label values dpto_26 dpto_26
 
-* 3. VARIABLE DE ANALFABETISMO
+* 2. VARIABLE DE ANALFABETISMO
 
 gen analfa = 0 if p208a >= 15 & p204 == 1
 replace analfa = 1 if p208a >= 15 & p302 == 2 & p204 == 1
@@ -110,7 +106,7 @@ label define analfa 0 "Sabe leer y escribir" 1 "No sabe leer ni escribir"
 label values analfa analfa
 label var analfa "Condición de alfabetismo"
 
-* 4. RANGOS DE EDAD PERSONALIZADOS
+* 3. RANGOS DE EDAD PERSONALIZADOS
 
 gen rangoedad = .
 replace rangoedad = 1 if p208a >= 15 & p208a <= 29
@@ -123,7 +119,11 @@ label define rangoedad                                          ///
 label values rangoedad rangoedad
 label var rangoedad "Rangos de edad"
 
-* 5. TABULACIONES Y ESTIMACIONES CON DISEÑO MUESTRAL
+* 4. TABULACIONES Y ESTIMACIONES CON DISEÑO MUESTRAL
+
+* 4.1. CONFIGURAR DISEÑO MUESTRAL
+
+svyset [pweight = factor07], psu(conglome) strata(estrato)
 
 * Total nacional
 
@@ -145,7 +145,7 @@ estat cv
 svy: proportion analfa, over(dpto_26)
 estat cv
 
-* 6. RESULTADOS ESPECÍFICOS PARA JUNÍN
+* 5. RESULTADOS ESPECÍFICOS PARA JUNÍN
 
 * Total Junín
 
@@ -172,10 +172,11 @@ estat cv
 svy: proportion analfa if dpto_26 == 120 & area == 2, over(rangoedad)
 estat cv
 
-* 7. OPCIONAL: TABLAS PORCENTUALES
+* 6. OPCIONAL: TABLAS PORCENTUALES
 
 svy: tab rangoedad analfa if dpto_26 == 120, row percent format(%4.1f)
 svy: tab rangoedad analfa if dpto_26 == 120 & p207 == 1, row percent format(%4.1f)
 svy: tab rangoedad analfa if dpto_26 == 120 & p207 == 2, row percent format(%4.1f)
+
 
 
